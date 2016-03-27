@@ -22,6 +22,7 @@ import math
 import signal
 import socket
 import timeit
+import time
 import platform
 import threading
 
@@ -32,6 +33,7 @@ user_agent = None
 source = None
 shutdown_event = None
 scheme = 'http'
+starttime = time.strftime("%d.%M.%Y;%H:%m:%S")
 
 
 # Used for bound_interface
@@ -708,7 +710,8 @@ def speedtest():
         print_(('Hosted by %(sponsor)s (%(name)s) [%(d)0.2f km]: '
                '%(latency)s ms' % best).encode('utf-8', 'ignore'))
     else:
-        print_('Ping: %(latency)s ms' % best)
+	if not args.csv:
+	    print_('Ping: %(latency)s ms' % best)
 
     sizes = [350, 500, 750, 1000, 1500, 2000, 2500, 3000, 3500, 4000]
     urls = []
@@ -721,7 +724,8 @@ def speedtest():
     dlspeed = downloadSpeed(urls, args.simple or args.csv)
     if not args.simple and not args.csv:
         print_()
-    print_('Download: %0.2f M%s/s' %
+    if not args.csv:
+	print_('Download: %0.2f M%s/s' %
            ((dlspeed / 1000 / 1000) * args.units[1], args.units[0]))
 
     sizesizes = [int(.25 * 1000 * 1000), int(.5 * 1000 * 1000)]
@@ -734,8 +738,12 @@ def speedtest():
     ulspeed = uploadSpeed(best['url'], sizes, args.simple or args.csv)
     if not args.simple and not args.csv:
         print_()
-    print_('Upload: %0.2f M%s/s' %
+    if not args.csv:
+	print_('Upload: %0.2f M%s/s' %
            ((ulspeed / 1000 / 1000) * args.units[1], args.units[0]))
+
+    if args.csv:
+	print_(starttime, '%(latency)s' % best, '%0.2f' % ((dlspeed / 1000 / 1000) * args.units[1]), '%0.2f' % ((ulspeed / 1000 / 1000) * args.units[1]), sep=';')
 
     if args.share and args.mini:
         print_('Cannot generate a speedtest.net share results image while '
