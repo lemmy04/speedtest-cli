@@ -590,6 +590,8 @@ def speedtest():
     parser.add_argument('--secure', action='store_true',
                         help='Use HTTPS instead of HTTP when communicating '
                              'with speedtest.net operated servers')
+    parser.add_argument('--csv', action='store_true',
+			help='Print result as CSV output: date;time;ping;download;upload;')
     parser.add_argument('--version', action='store_true',
                         help='Show the version number and exit')
 
@@ -617,7 +619,7 @@ def speedtest():
     if args.secure:
         scheme = 'https'
 
-    if not args.simple:
+    if not args.simple and not args.csv:
         print_('Retrieving speedtest.net configuration...')
     try:
         config = getConfig()
@@ -625,7 +627,7 @@ def speedtest():
         print_('Cannot retrieve speedtest configuration')
         sys.exit(1)
 
-    if not args.simple:
+    if not args.simple and not args.csv:
         print_('Retrieving speedtest.net server list...')
     if args.list or args.server:
         servers = closestServers(config['client'], True)
@@ -640,7 +642,7 @@ def speedtest():
     else:
         servers = closestServers(config['client'])
 
-    if not args.simple:
+    if not args.simple and not args.csv:
         print_('Testing from %(isp)s (%(ip)s)...' % config['client'])
 
     if args.server:
@@ -698,11 +700,11 @@ def speedtest():
         except:
             best = servers[0]
     else:
-        if not args.simple:
+	if not args.simple and not args.csv:
             print_('Selecting best server based on latency...')
         best = getBestServer(servers)
 
-    if not args.simple:
+    if not args.simple and not args.csv:
         print_(('Hosted by %(sponsor)s (%(name)s) [%(d)0.2f km]: '
                '%(latency)s ms' % best).encode('utf-8', 'ignore'))
     else:
@@ -714,10 +716,10 @@ def speedtest():
         for i in range(0, 4):
             urls.append('%s/random%sx%s.jpg' %
                         (os.path.dirname(best['url']), size, size))
-    if not args.simple:
+    if not args.simple and not args.csv:
         print_('Testing download speed', end='')
-    dlspeed = downloadSpeed(urls, args.simple)
-    if not args.simple:
+    dlspeed = downloadSpeed(urls, args.simple or args.csv)
+    if not args.simple and not args.csv:
         print_()
     print_('Download: %0.2f M%s/s' %
            ((dlspeed / 1000 / 1000) * args.units[1], args.units[0]))
@@ -727,10 +729,10 @@ def speedtest():
     for size in sizesizes:
         for i in range(0, 25):
             sizes.append(size)
-    if not args.simple:
+    if not args.simple and not args.csv:
         print_('Testing upload speed', end='')
-    ulspeed = uploadSpeed(best['url'], sizes, args.simple)
-    if not args.simple:
+    ulspeed = uploadSpeed(best['url'], sizes, args.simple or args.csv)
+    if not args.simple and not args.csv:
         print_()
     print_('Upload: %0.2f M%s/s' %
            ((ulspeed / 1000 / 1000) * args.units[1], args.units[0]))
